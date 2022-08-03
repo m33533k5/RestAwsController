@@ -7,11 +7,16 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
+import reactor.core.publisher.toMono
 import java.net.URL
 
 @Component
-class Client {
-
+class Client(
+    webClientBuilder: WebClient.Builder,
+) {
+    private val webClient = webClientBuilder.build()
     private var listOfAllIps: MutableList<String> = mutableListOf()
 
     fun main(region: String): AwsIpData {
@@ -19,9 +24,10 @@ class Client {
         return createAwsIpData(region, rawIpData)
     }
 
-    private fun getDataFromAPI(): AwsIpData {
-        val response = getResponseFromApi()
+    fun getDataFromAPI(): AwsIpData {
+        val url = "https://ip-ranges.amazonaws.com/ip-ranges.json"
 
+        val response = getResponseFromApi(url)
         val jsonNodeList = createJacksonMapper(response)
 
         return AwsIpData(
@@ -32,17 +38,33 @@ class Client {
         )
     }
 
-    private fun getResponseFromApi(): String {
-        return URL("https://ip-ranges.amazonaws.com/ip-ranges.json").readText()
+    fun getStatusCode(url: String): Mono<String> = webClient
+        .get()
+        .uri(url)
+        .exchangeToMono { it.rawStatusCode().toMono() }
+        .map { checkUrlCode(it) }
+
+    fun checkUrlCode(responseCode: Int): String = when (responseCode) {
+        in 200..299 -> "erreichbar"
+        in 400..499 -> "erreichbar ${errorMessage(responseCode, "Client")}"
+        in 500..599 -> "nicht erreichbar ${errorMessage(responseCode, "Server")}"
+        in 300..399 -> "Weiterleitungen werden nicht zugelassen"
+        else -> "Nicht definierter Status"
     }
 
-    private fun createJacksonMapper(response: String): JsonNode {
+    fun errorMessage(responseCode: Int, responsible: String?) = "(${responsible} error - Code: ${responseCode})"
+
+    fun getResponseFromApi(url: String): String {
+        return URL(url).readText()
+    }
+
+    fun createJacksonMapper(response: String): JsonNode {
         val mapper = jacksonObjectMapper()
         mapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
         return mapper.readTree(response)
     }
 
-    private fun getIpv6Prefixes(jsonNodeList: JsonNode): List<Ipv6Prefixe> {
+    fun getIpv6Prefixes(jsonNodeList: JsonNode): List<Ipv6Prefixe> {
         return jsonNodeList.findValue("ipv6_prefixes").map { ipv6_prefixesNode ->
             Ipv6Prefixe(
                 ipv6Prefix = ipv6_prefixesNode.get("ipv6_prefix").textValue(),
@@ -53,7 +75,7 @@ class Client {
         }
     }
 
-    private fun getIpPrefixes(jsonNodeList: JsonNode): List<Prefixe> {
+    fun getIpPrefixes(jsonNodeList: JsonNode): List<Prefixe> {
         return jsonNodeList.findValue("prefixes").toList().map { prefixesNode ->
             Prefixe(
                 ipPrefix = prefixesNode.get("ip_prefix").textValue(),
@@ -64,7 +86,7 @@ class Client {
         }
     }
 
-    private fun createAwsIpData(region: String, rawIpData: AwsIpData): AwsIpData {
+    fun createAwsIpData(region: String, rawIpData: AwsIpData): AwsIpData {
         return when (region) {
             "ALL" -> rawIpData
             else -> {
@@ -78,25 +100,25 @@ class Client {
         }
     }
 
-    private fun getIpv6RegionByFilter(rawIpData: AwsIpData, region: String): List<Ipv6Prefixe> {
+    fun getIpv6RegionByFilter(rawIpData: AwsIpData, region: String): List<Ipv6Prefixe> {
         return rawIpData.ipv6Prefixes.filter {
             it.region?.substringBefore("-")?.equals(region, ignoreCase = true) ?: false
         }
     }
 
-    private fun getIpRegionByFilter(rawIpData: AwsIpData, region: String): List<Prefixe> {
+    fun getIpRegionByFilter(rawIpData: AwsIpData, region: String): List<Prefixe> {
         return rawIpData.prefixes.filter {
             it.region?.substringBefore("-")?.equals(region, ignoreCase = true) ?: false
         }
     }
 
-    private fun getPossibleIps(rawIpData: AwsIpData) {
+    fun getPossibleIps(rawIpData: AwsIpData) {
         for (item in 0 until rawIpData.prefixes.size) {
             listOfAllIps.add(item, rawIpData.prefixes[item].ipPrefix.toString())
         }
     }
 
-    private fun getPossibleIpv6Ips(rawIpData: AwsIpData) {
+    fun getPossibleIpv6Ips(rawIpData: AwsIpData) {
         for (item in 0 until rawIpData.ipv6Prefixes.size) {
             listOfAllIps.add(item, rawIpData.ipv6Prefixes[item].ipv6Prefix.toString())
         }
