@@ -80,8 +80,6 @@ internal class ClientTest(
             .verifyComplete()
 
         verify(getRequestedFor(urlEqualTo("/response")))
-
-        wireMockServer.stop()
     }
 
     companion object {
@@ -112,12 +110,16 @@ internal class ClientTest(
         val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
         val jsonNodeList = client.createJacksonMapper(response)
 
-        assertEquals("2022-08-03-01-13-07",jsonNodeList.findValue("createDate").textValue())
-        assertEquals("1659489187",jsonNodeList.findValue("syncToken").textValue())
-        assertEquals("[Ipv6Prefixe(ipv6Prefix=2a05:d07a:a000::/40, networkBorderGroup=eu-south-1, region=eu-south-1, service=AMAZON)]",client.getIpv6Prefixes(jsonNodeList).toString())
-        assertEquals("[Prefixe(ipPrefix=13.34.37.64/27, networkBorderGroup=ap-southeast-4, region=ap-southeast-4, service=AMAZON)]",client.getIpPrefixes(jsonNodeList).toString())
-
-        wireMockServer.stop()
+        assertEquals("2022-08-03-01-13-07", jsonNodeList.findValue("createDate").textValue())
+        assertEquals("1659489187", jsonNodeList.findValue("syncToken").textValue())
+        assertEquals(
+            "[Ipv6Prefixe(ipv6Prefix=2a05:d07a:a000::/40, networkBorderGroup=eu-south-1, region=eu-south-1, service=AMAZON)]",
+            client.getIpv6Prefixes(jsonNodeList).toString()
+        )
+        assertEquals(
+            "[Prefixe(ipPrefix=13.34.37.64/27, networkBorderGroup=ap-southeast-4, region=ap-southeast-4, service=AMAZON)]",
+            client.getIpPrefixes(jsonNodeList).toString()
+        )
     }
 
     @Test
@@ -139,8 +141,6 @@ internal class ClientTest(
 
         testResponse = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
         assertEquals("Test", testResponse)
-
-        wireMockServer.stop()
     }
 
     @Test
@@ -220,10 +220,11 @@ internal class ClientTest(
             prefixes = client.getIpPrefixes(jsonNodeList),
             syncToken = jsonNodeList.findValue("syncToken").textValue(),
         )
-        assertEquals("[Ipv6Prefixe(ipv6Prefix=2a05:d07a:a000::/40, networkBorderGroup=eu-south-1, region=eu-south-1, service=AMAZON)]", client.getIpv6RegionByFilter(rawIpData, "eu").toString())
+        assertEquals(
+            "[Ipv6Prefixe(ipv6Prefix=2a05:d07a:a000::/40, networkBorderGroup=eu-south-1, region=eu-south-1, service=AMAZON)]",
+            client.getIpv6RegionByFilter(rawIpData, "eu").toString()
+        )
         assertEquals("[]", client.getIpv6RegionByFilter(rawIpData, "qw").toString())
-
-        wireMockServer.stop()
     }
 
     @Test
@@ -245,10 +246,11 @@ internal class ClientTest(
             prefixes = client.getIpPrefixes(jsonNodeList),
             syncToken = jsonNodeList.findValue("syncToken").textValue(),
         )
-        assertEquals("[Prefixe(ipPrefix=13.34.37.64/27, networkBorderGroup=ap-southeast-4, region=ap-southeast-4, service=AMAZON)]", client.getIpRegionByFilter(rawIpData, "ap").toString())
+        assertEquals(
+            "[Prefixe(ipPrefix=13.34.37.64/27, networkBorderGroup=ap-southeast-4, region=ap-southeast-4, service=AMAZON)]",
+            client.getIpRegionByFilter(rawIpData, "ap").toString()
+        )
         assertEquals("[]", client.getIpRegionByFilter(rawIpData, "qw").toString())
-
-        wireMockServer.stop()
     }
 
     @Test
@@ -274,12 +276,10 @@ internal class ClientTest(
         val mockClient: Client = mock(Client::class.java)
         mockClient.getPossibleIps(rawIpData)
         verify(mockClient, times(1)).getPossibleIps(rawIpData)
-
-        wireMockServer.stop()
     }
 
     @Test
-    fun getPossibleIpv6Ips(){
+    fun getPossibleIpv6Ips() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -301,8 +301,6 @@ internal class ClientTest(
         val mockClient: Client = mock(Client::class.java)
         mockClient.getPossibleIpv6Ips(rawIpData)
         verify(mockClient, times(1)).getPossibleIpv6Ips(rawIpData)
-
-        wireMockServer.stop()
     }
 
     @Test
@@ -328,9 +326,7 @@ internal class ClientTest(
         listOfAllIps = client.getAllIps(rawIpData)
 
         assertEquals(2, listOfAllIps.size)
-        assertEquals("2a05:d07a:a000::/40",listOfAllIps[0])
-        assertEquals("13.34.37.64/27",listOfAllIps[1])
-
-        wireMockServer.stop()
+        assertEquals("2a05:d07a:a000::/40", listOfAllIps[0])
+        assertEquals("13.34.37.64/27", listOfAllIps[1])
     }
 }
