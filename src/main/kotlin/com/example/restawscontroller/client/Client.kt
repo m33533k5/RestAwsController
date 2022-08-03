@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
 import java.net.URL
 
@@ -37,14 +38,11 @@ class Client(
         )
     }
 
-    /*
-    fun getStatusCode(url: String): String {
-        return webClient
-            .get()
-            .uri(url)
-            .exchangeToMono { it.rawStatusCode().toMono() }
-            .map { checkUrlCode(it) }.toString()
-    }
+    fun getStatusCode(url: String): Mono<String> = webClient
+        .get()
+        .uri(url)
+        .exchangeToMono { it.rawStatusCode().toMono() }
+        .map { checkUrlCode(it) }
 
     fun checkUrlCode(responseCode: Int): String = when (responseCode) {
         in 200..299 -> "Seite erreichbar"
@@ -55,8 +53,6 @@ class Client(
     }
 
     fun errorMessage(responseCode: Int, responsible: String?) = "(${responsible} error - Code: ${responseCode})"
-
-     */
 
     fun getResponseFromApi(url: String): String {
         return URL(url).readText()
