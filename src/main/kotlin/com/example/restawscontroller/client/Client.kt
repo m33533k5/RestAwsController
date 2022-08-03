@@ -16,7 +16,7 @@ class Client {
     fun main(region: String): AwsIpData {
         val rawIpData = getDataFromAPI()
 
-        return when(region){
+        return when (region) {
             "ALL" -> rawIpData
             else -> {
                 AwsIpData(
@@ -74,19 +74,19 @@ class Client {
         }
     }
 
-    private fun getPossibleIps(rawIpData: AwsIpData){
-        for(item in 0 until rawIpData.prefixes.size){
+    private fun getPossibleIps(rawIpData: AwsIpData) {
+        for (item in 0 until rawIpData.prefixes.size) {
             listOfAllIps.add(item, rawIpData.prefixes[item].ipPrefix.toString())
         }
     }
 
-    private fun getPossibleIpv6Ips(rawIpData: AwsIpData){
-        for(item in 0 until rawIpData.ipv6Prefixes.size){
+    private fun getPossibleIpv6Ips(rawIpData: AwsIpData) {
+        for (item in 0 until rawIpData.ipv6Prefixes.size) {
             listOfAllIps.add(item, rawIpData.ipv6Prefixes[item].ipv6Prefix.toString())
         }
     }
 
-    fun getAllIps(rawIpData: AwsIpData): MutableList<String>{
+    fun getAllIps(rawIpData: AwsIpData): MutableList<String> {
         getPossibleIps(rawIpData)
         getPossibleIpv6Ips(rawIpData)
         return listOfAllIps

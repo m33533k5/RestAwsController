@@ -18,7 +18,7 @@ class Controller(
     fun getUrlContent(@RequestParam region: String): ResponseEntity<String> {
         val response: AwsIpData = client.main(region = region)
 
-        return when(responseDataIsEmpty(response)){
+        return when (responseDataIsEmpty(response)) {
             true -> ResponseEntity<String>("Keine Ergebnisse gefunden", HttpStatus.OK)
             false -> ResponseEntity<String>(client.getAllIps(response).toString(), HttpStatus.OK)
         }
