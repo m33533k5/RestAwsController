@@ -11,7 +11,7 @@ import java.net.URL
 @Component
 class Client {
 
-    private var ips: MutableList<String> = mutableListOf()
+    private var listOfAllIps: MutableList<String> = mutableListOf()
 
     fun main(region: String): AwsIpData {
         val rawIpData = getDataFromAPI()
@@ -23,7 +23,7 @@ class Client {
                     createDate = rawIpData.createDate,
                     syncToken = rawIpData.syncToken,
                     ipv6Prefixes = getIpv6RegionByFilter(rawIpData, region),
-                    prefixes = getRegionByFilter(rawIpData, region)
+                    prefixes = getIpRegionByFilter(rawIpData, region)
                 )
             }
         }
@@ -68,7 +68,7 @@ class Client {
         }
     }
 
-    private fun getRegionByFilter(rawIpData: AwsIpData, region: String): List<Prefixe> {
+    private fun getIpRegionByFilter(rawIpData: AwsIpData, region: String): List<Prefixe> {
         return rawIpData.prefixes.filter {
             it.region?.substringBefore("-")?.equals(region, ignoreCase = true) ?: false
         }
@@ -76,20 +76,20 @@ class Client {
 
     private fun getPossibleIps(rawIpData: AwsIpData){
         for(item in 0 until rawIpData.prefixes.size){
-            ips.add(item, rawIpData.prefixes[item].ipPrefix.toString())
+            listOfAllIps.add(item, rawIpData.prefixes[item].ipPrefix.toString())
         }
     }
 
     private fun getPossibleIpv6Ips(rawIpData: AwsIpData){
         for(item in 0 until rawIpData.ipv6Prefixes.size){
-            ips.add(item, rawIpData.ipv6Prefixes[item].ipv6Prefix.toString())
+            listOfAllIps.add(item, rawIpData.ipv6Prefixes[item].ipv6Prefix.toString())
         }
     }
 
-    fun getIps(rawIpData: AwsIpData): MutableList<String>{
+    fun getAllIps(rawIpData: AwsIpData): MutableList<String>{
         getPossibleIps(rawIpData)
         getPossibleIpv6Ips(rawIpData)
-        return ips
+        return listOfAllIps
     }
 
 }

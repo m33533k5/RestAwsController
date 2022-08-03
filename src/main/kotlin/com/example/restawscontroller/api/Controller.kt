@@ -20,7 +20,7 @@ class Controller(
 
         return when(getDataIsEmpty(response)){
             true -> ResponseEntity<String>("Keine Ergebnisse gefunden", HttpStatus.OK)
-            false -> ResponseEntity<String>(client.getIps(response).toString(), HttpStatus.OK)
+            false -> ResponseEntity<String>(client.getAllIps(response).toString(), HttpStatus.OK)
         }
 
     }
