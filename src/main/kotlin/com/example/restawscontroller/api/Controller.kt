@@ -18,14 +18,13 @@ class Controller(
     fun getUrlContent(@RequestParam region: String): ResponseEntity<String> {
         val response: AwsIpData = client.main(region = region)
 
-        return when(getDataIsEmpty(response)){
+        return when(responseDataIsEmpty(response)){
             true -> ResponseEntity<String>("Keine Ergebnisse gefunden", HttpStatus.OK)
             false -> ResponseEntity<String>(client.getAllIps(response).toString(), HttpStatus.OK)
         }
-
     }
 
-    private fun getDataIsEmpty(data: AwsIpData?): Boolean {
+    private fun responseDataIsEmpty(data: AwsIpData?): Boolean {
         return data?.prefixes?.isEmpty() == true && data?.ipv6Prefixes?.isEmpty()
     }
 }
