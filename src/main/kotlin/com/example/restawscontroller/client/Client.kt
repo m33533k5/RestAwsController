@@ -11,7 +11,7 @@ import java.net.URL
 @Component
 class Client {
 
-    var ips: MutableList<String> = mutableListOf()
+    private var ips: MutableList<String> = mutableListOf()
 
     fun main(region: String): AwsIpData {
         val rawIpData = getDataFromAPI()
@@ -29,7 +29,7 @@ class Client {
         }
     }
 
-    fun getDataFromAPI(): AwsIpData {
+    private fun getDataFromAPI(): AwsIpData {
         val response: String = URL("https://ip-ranges.amazonaws.com/ip-ranges.json").readText()
 
         val mapper = jacksonObjectMapper()
@@ -62,28 +62,34 @@ class Client {
         )
     }
 
-    fun getIpv6RegionByFilter(rawIpData: AwsIpData, region: String): List<Ipv6Prefixe> {
+    private fun getIpv6RegionByFilter(rawIpData: AwsIpData, region: String): List<Ipv6Prefixe> {
         return rawIpData.ipv6Prefixes.filter {
             it.region?.substringBefore("-")?.equals(region, ignoreCase = true) ?: false
         }
     }
 
-    fun getRegionByFilter(rawIpData: AwsIpData, region: String): List<Prefixe> {
+    private fun getRegionByFilter(rawIpData: AwsIpData, region: String): List<Prefixe> {
         return rawIpData.prefixes.filter {
             it.region?.substringBefore("-")?.equals(region, ignoreCase = true) ?: false
         }
     }
 
-    fun getPossibleIps(rawIpData: AwsIpData){
+    private fun getPossibleIps(rawIpData: AwsIpData){
         for(item in 0 until rawIpData.prefixes.size){
             ips.add(item, rawIpData.prefixes[item].ipPrefix.toString())
         }
     }
 
-    fun getPossibleIpv6Ips(rawIpData: AwsIpData){
+    private fun getPossibleIpv6Ips(rawIpData: AwsIpData){
         for(item in 0 until rawIpData.ipv6Prefixes.size){
             ips.add(item, rawIpData.ipv6Prefixes[item].ipv6Prefix.toString())
         }
+    }
+
+    fun getIps(rawIpData: AwsIpData): MutableList<String>{
+        getPossibleIps(rawIpData)
+        getPossibleIpv6Ips(rawIpData)
+        return ips
     }
 
 }

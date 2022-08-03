@@ -17,17 +17,15 @@ class Controller(
     @RequestMapping("/")
     fun getUrlContent(@RequestParam region: String): ResponseEntity<String> {
         val response: AwsIpData = client.main(region = region)
-        client.getPossibleIps(response)
-        client.getPossibleIpv6Ips(response)
 
         return when(getDataIsEmpty(response)){
             true -> ResponseEntity<String>("Keine Ergebnisse gefunden", HttpStatus.OK)
-            false -> ResponseEntity<String>(client.ips.toString(), HttpStatus.OK)
+            false -> ResponseEntity<String>(client.getIps(response).toString(), HttpStatus.OK)
         }
 
     }
 
-    fun getDataIsEmpty(data: AwsIpData?): Boolean {
+    private fun getDataIsEmpty(data: AwsIpData?): Boolean {
         return data?.prefixes?.isEmpty() == true && data?.ipv6Prefixes?.isEmpty()
     }
 }
