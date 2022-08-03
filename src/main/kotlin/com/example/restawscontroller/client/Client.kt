@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
 import java.net.URL
 
@@ -18,6 +17,7 @@ class Client(
 ) {
     private val webClient = webClientBuilder.build()
     private var listOfAllIps: MutableList<String> = mutableListOf()
+    val url = "https://ip-ranges.amazonaws.com/ip-ranges.json"
 
     fun main(region: String): AwsIpData {
         val rawIpData = getDataFromAPI()
@@ -25,7 +25,6 @@ class Client(
     }
 
     fun getDataFromAPI(): AwsIpData {
-        val url = "https://ip-ranges.amazonaws.com/ip-ranges.json"
 
         val response = getResponseFromApi(url)
         val jsonNodeList = createJacksonMapper(response)
@@ -38,21 +37,26 @@ class Client(
         )
     }
 
-    fun getStatusCode(url: String): Mono<String> = webClient
-        .get()
-        .uri(url)
-        .exchangeToMono { it.rawStatusCode().toMono() }
-        .map { checkUrlCode(it) }
+    /*
+    fun getStatusCode(url: String): String {
+        return webClient
+            .get()
+            .uri(url)
+            .exchangeToMono { it.rawStatusCode().toMono() }
+            .map { checkUrlCode(it) }.toString()
+    }
 
     fun checkUrlCode(responseCode: Int): String = when (responseCode) {
-        in 200..299 -> "erreichbar"
-        in 400..499 -> "erreichbar ${errorMessage(responseCode, "Client")}"
-        in 500..599 -> "nicht erreichbar ${errorMessage(responseCode, "Server")}"
-        in 300..399 -> "Weiterleitungen werden nicht zugelassen"
+        in 200..299 -> "Seite erreichbar"
+        in 400..499 -> "Seite erreichbar ${errorMessage(responseCode, "Client")}"
+        in 500..599 -> "Seite nicht erreichbar ${errorMessage(responseCode, "Server")}"
+        in 300..399 -> "Weiterleitung"
         else -> "Nicht definierter Status"
     }
 
     fun errorMessage(responseCode: Int, responsible: String?) = "(${responsible} error - Code: ${responseCode})"
+
+     */
 
     fun getResponseFromApi(url: String): String {
         return URL(url).readText()
