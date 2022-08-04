@@ -20,5 +20,8 @@ jobs:
           java-version: 17
           cache: gradle
 
-      - name: Build
-          run: ./gradlew clean check build
+      - name: Run Tests
+        run: ./gradlew test
+
+      - name: Build Project
+        run: ./gradlew assemble
