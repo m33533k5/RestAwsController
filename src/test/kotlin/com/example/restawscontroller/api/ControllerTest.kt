@@ -23,7 +23,7 @@ internal class ControllerTest(
     @Autowired val controller: Controller
 ) {
     @Autowired private lateinit var wireMockServer: WireMockServer
-    private lateinit var rawIpData: AwsIpData
+    private lateinit var rawIpDataController: AwsIpData
     private val jsonStringAllIps: String =
         """
                 {
@@ -101,7 +101,7 @@ internal class ControllerTest(
     @Test
     fun `should response with Keine Ergebnisse gefunden`() {
         createWireMockServerAndRawIpData(jsonStringEmpty)
-        assertEquals(false, controller.responseDataIsNotEmpty(rawIpData))
+        assertEquals(false, controller.responseDataIsNotEmpty(rawIpDataController))
         assertEquals("Keine Ergebnisse gefunden.", controller.getUrlContent("asd").body.toString())
         assertEquals("200 OK", controller.getUrlContent("asd").statusCode.toString())
     }
@@ -109,7 +109,7 @@ internal class ControllerTest(
     @Test
     fun `should response with data`(){
         createWireMockServerAndRawIpData(jsonStringAllIps)
-        assertEquals(true, controller.responseDataIsNotEmpty(rawIpData))
+        assertEquals(true, controller.responseDataIsNotEmpty(rawIpDataController))
         assertNotNull(controller.getUrlContent("eu").body.toString())
         assertEquals("200 OK", controller.getUrlContent("eu").statusCode.toString())
     }
@@ -117,16 +117,16 @@ internal class ControllerTest(
     @Test
     fun responseDataIsEmpty() {
         createWireMockServerAndRawIpData(jsonStringIpv6Empty)
-        assertEquals(true, controller.responseDataIsNotEmpty(rawIpData))
+        assertEquals(true, controller.responseDataIsNotEmpty(rawIpDataController))
 
         createWireMockServerAndRawIpData(jsonStringIpEmpty)
-        assertEquals(true, controller.responseDataIsNotEmpty(rawIpData))
+        assertEquals(true, controller.responseDataIsNotEmpty(rawIpDataController))
 
         createWireMockServerAndRawIpData(jsonStringAllIps)
-        assertEquals(true, controller.responseDataIsNotEmpty(rawIpData))
+        assertEquals(true, controller.responseDataIsNotEmpty(rawIpDataController))
 
         createWireMockServerAndRawIpData(jsonStringEmpty)
-        assertEquals(false, controller.responseDataIsNotEmpty(rawIpData))
+        assertEquals(false, controller.responseDataIsNotEmpty(rawIpDataController))
     }
 
     private fun createWireMockServer(jsonString: String){
@@ -143,7 +143,7 @@ internal class ControllerTest(
     private fun createRawIpData(){
         val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
         val jsonNodeList = client.createJacksonMapper(response)
-        rawIpData = AwsIpData(
+        rawIpDataController = AwsIpData(
             createDate = jsonNodeList.findValue("createDate").textValue(),
             ipv6Prefixes = client.getIpv6Prefixes(jsonNodeList),
             prefixes = client.getIpPrefixes(jsonNodeList),

@@ -27,7 +27,7 @@ internal class ClientTest(
     @Autowired val client: Client
 ) {
     @Autowired private lateinit var wireMockServer: WireMockServer
-    private lateinit var rawIpData: AwsIpData
+    private lateinit var rawIpDataClient: AwsIpData
     private lateinit var testResponse: String
     private lateinit var jsonNode: JsonNode
     private var listOfAllIps: MutableList<String> = mutableListOf()
@@ -167,13 +167,13 @@ internal class ClientTest(
     fun `should create data with ips`() {
         createWireMockServerAndRawIpData()
 
-        var allData = client.createAwsIpData("ALL", rawIpData)
+        var allData = client.createAwsIpData("ALL", rawIpDataClient)
         assertEquals(1, allData.ipv6Prefixes.size)
         assertEquals(1, allData.prefixes.size)
         assertEquals("2022-08-03-01-13-07", allData.createDate)
         assertEquals("1659489187", allData.syncToken)
 
-        allData = client.createAwsIpData("EU", rawIpData)
+        allData = client.createAwsIpData("EU", rawIpDataClient)
         assertEquals(1, allData.ipv6Prefixes.size)
         assertEquals(0, allData.prefixes.size)
     }
@@ -184,9 +184,9 @@ internal class ClientTest(
 
         assertEquals(
             "[Ipv6Prefixe(ipv6Prefix=2a05:d07a:a000::/40, networkBorderGroup=eu-south-1, region=eu-south-1, service=AMAZON)]",
-            client.getIpv6RegionByFilter(rawIpData, "eu").toString()
+            client.getIpv6RegionByFilter(rawIpDataClient, "eu").toString()
         )
-        assertEquals("[]", client.getIpv6RegionByFilter(rawIpData, "qw").toString())
+        assertEquals("[]", client.getIpv6RegionByFilter(rawIpDataClient, "qw").toString())
     }
 
     @Test
@@ -195,9 +195,9 @@ internal class ClientTest(
 
         assertEquals(
             "[Prefixe(ipPrefix=13.34.37.64/27, networkBorderGroup=ap-southeast-4, region=ap-southeast-4, service=AMAZON)]",
-            client.getIpRegionByFilter(rawIpData, "ap").toString()
+            client.getIpRegionByFilter(rawIpDataClient, "ap").toString()
         )
-        assertEquals("[]", client.getIpRegionByFilter(rawIpData, "qw").toString())
+        assertEquals("[]", client.getIpRegionByFilter(rawIpDataClient, "qw").toString())
     }
 
     @Test
@@ -205,8 +205,8 @@ internal class ClientTest(
         createWireMockServerAndRawIpData()
 
         val mockClient: Client = mock(Client::class.java)
-        mockClient.getPossibleIps(rawIpData)
-        verify(mockClient, times(1)).getPossibleIps(rawIpData)
+        mockClient.getPossibleIps(rawIpDataClient)
+        verify(mockClient, times(1)).getPossibleIps(rawIpDataClient)
     }
 
     @Test
@@ -214,15 +214,15 @@ internal class ClientTest(
         createWireMockServerAndRawIpData()
 
         val mockClient: Client = mock(Client::class.java)
-        mockClient.getPossibleIpv6Ips(rawIpData)
-        verify(mockClient, times(1)).getPossibleIpv6Ips(rawIpData)
+        mockClient.getPossibleIpv6Ips(rawIpDataClient)
+        verify(mockClient, times(1)).getPossibleIpv6Ips(rawIpDataClient)
     }
 
     @Test
     fun `should get all possible ip and ipv6 data in a list`() {
         createWireMockServerAndRawIpData()
 
-        listOfAllIps = client.getAllIps(rawIpData)
+        listOfAllIps = client.getAllIps(rawIpDataClient)
 
         assertEquals(2, listOfAllIps.size)
         assertEquals("2a05:d07a:a000::/40", listOfAllIps[0])
@@ -243,7 +243,7 @@ internal class ClientTest(
     private fun createRawIpData(){
         val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
         val jsonNodeList = client.createJacksonMapper(response)
-        rawIpData = AwsIpData(
+        rawIpDataClient = AwsIpData(
             createDate = jsonNodeList.findValue("createDate").textValue(),
             ipv6Prefixes = client.getIpv6Prefixes(jsonNodeList),
             prefixes = client.getIpPrefixes(jsonNodeList),
