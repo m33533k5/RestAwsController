@@ -102,16 +102,12 @@ internal class ControllerTest(
     fun `should response with Keine Ergebnisse gefunden`() {
         createWireMockServerAndRawIpData(jsonStringEmpty)
         assertEquals(false, controller.responseDataIsNotEmpty(rawIpDataController))
-        assertEquals("Keine Ergebnisse gefunden.", controller.getUrlContent("asd").body.toString())
-        assertEquals("200 OK", controller.getUrlContent("asd").statusCode.toString())
     }
 
     @Test
     fun `should response with data`(){
         createWireMockServerAndRawIpData(jsonStringAllIps)
         assertEquals(true, controller.responseDataIsNotEmpty(rawIpDataController))
-        assertNotNull(controller.getUrlContent("eu").body.toString())
-        assertEquals("200 OK", controller.getUrlContent("eu").statusCode.toString())
     }
 
     @Test
