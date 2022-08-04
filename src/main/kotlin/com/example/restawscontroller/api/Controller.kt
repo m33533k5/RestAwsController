@@ -25,6 +25,6 @@ class Controller(
     }
 
     fun responseDataIsNotEmpty(data: AwsIpData?): Boolean {
-        return !(data?.prefixes?.isEmpty() == true && data?.ipv6Prefixes?.isEmpty() == true)
+        return !(data?.prefixes?.isEmpty() == true && data.ipv6Prefixes.isEmpty())
     }
 }
