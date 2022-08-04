@@ -18,13 +18,25 @@ class Controller(
     fun getUrlContent(@RequestParam region: String): ResponseEntity<String> {
         val response: AwsIpData = client.main(region = region)
 
-        return when (responseDataIsNotEmpty(response)) {
-            false -> ResponseEntity<String>("Keine Ergebnisse gefunden.", HttpStatus.OK)
-            true -> ResponseEntity<String>(client.getAllIps(response).toString(), HttpStatus.OK)
+        return when(client.getHttpStatusCodeAsString()){
+            "Seite erreichbar" -> outputData(response)
+            else -> ResponseEntity<String>(client.getHttpStatusCodeAsString(), HttpStatus.OK)
         }
+
     }
 
     fun responseDataIsNotEmpty(data: AwsIpData?): Boolean {
         return !(data?.prefixes?.isEmpty() == true && data.ipv6Prefixes.isEmpty())
+    }
+
+    fun outputData(response: AwsIpData): ResponseEntity<String>{
+        return when (responseDataIsNotEmpty(response)) {
+            false -> {
+                ResponseEntity<String>("Keine Ergebnisse gefunden.", HttpStatus.OK)
+            }
+            true -> {
+                ResponseEntity<String>(client.getAllIps(response).toString(), HttpStatus.OK)
+            }
+        }
     }
 }

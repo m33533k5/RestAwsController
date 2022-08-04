@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.net.URL
+import java.time.Duration
 
 @Component
 class Client(
@@ -38,19 +39,25 @@ class Client(
         )
     }
 
-    fun getStatusCode(url: String): Mono<String> = webClient
+    fun getHttpStatusCode(url: String): Mono<String> = webClient
         .get()
         .uri(url)
         .exchangeToMono { it.rawStatusCode().toMono() }
-        .map { checkUrlCode(it) }
+        .map { checkHttpStatusCode(it) }
 
-    fun checkUrlCode(responseCode: Int): String = when (responseCode) {
+    fun checkHttpStatusCode(responseCode: Int): String = when (responseCode) {
         in 200..299 -> "Seite erreichbar"
         in 400..499 -> "Seite erreichbar ${errorMessage(responseCode, "Client")}"
         in 500..599 -> "Seite nicht erreichbar ${errorMessage(responseCode, "Server")}"
         in 300..399 -> "Weiterleitung"
         else -> "Nicht definierter Status"
     }
+
+    fun getHttpStatusCodeAsString(): String?{
+        val httpStatus: Mono<String> = getHttpStatusCode(url)
+        return httpStatus.block(Duration.ofMillis(10000))
+    }
+
 
     fun errorMessage(responseCode: Int, responsible: String?) = "(${responsible} error - Code: ${responseCode})"
 
