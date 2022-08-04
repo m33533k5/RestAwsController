@@ -1,8 +1,9 @@
-name: Main Workflow
-on: push
+name: AWS IP Rest Workflow
+on:
+  push:
+  pull_request:
 jobs:
-
-  backend:
+  build:
     name: Backend
     runs-on: ubuntu-latest
     defaults:
@@ -18,3 +19,6 @@ jobs:
           distribution: temurin
           java-version: 17
           cache: gradle
+
+      - name: Build
+          run: ./gradlew clean check build
