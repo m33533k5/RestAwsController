@@ -1,7 +1,6 @@
 name: CI - build and test
 on:
   push:
-    branches: [ main ]
 
 jobs:
   build:
