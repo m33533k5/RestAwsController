@@ -1,14 +1,12 @@
-name: AWS IP Rest Workflow
+name: CI - build and test
 on:
   push:
-  pull_request:
+    branches: [ main ]
+
 jobs:
   build:
-    name: Backend
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src
+
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -23,8 +21,10 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Build Project
+        run: ./gradlew assemble
+
       - name: Run Tests
         run: ./gradlew test
 
-      - name: Build Project
-        run: ./gradlew assemble
+
