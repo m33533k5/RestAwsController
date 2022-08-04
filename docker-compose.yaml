@@ -1,0 +1,12 @@
+version: "3.6"
+
+services:
+  app:
+    build: ./
+    container_name: restController
+    volumes:
+      - ./:/RestAwsController
+    ports:
+      - 8080:8080
+    expose:
+      - 8080
