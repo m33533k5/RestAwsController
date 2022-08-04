@@ -20,8 +20,11 @@ jobs:
           java-version: 17
           cache: gradle
 
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
       - name: Run Tests
-        run: .\gradlew test
+        run: ./gradlew test
 
       - name: Build Project
-        run: .\gradlew assemble
+        run: ./gradlew assemble
