@@ -74,7 +74,7 @@ internal class ClientTest(
         )
 
         client
-            .getStatusCode("${wireMockServer.baseUrl()}/response")
+            .getHttpStatusCode("${wireMockServer.baseUrl()}/response")
             .test()
             .expectNext(expected)
             .verifyComplete()
