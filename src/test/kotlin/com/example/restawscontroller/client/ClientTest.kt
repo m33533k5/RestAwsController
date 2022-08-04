@@ -28,6 +28,7 @@ internal class ClientTest(
 ) {
     @Autowired
     private lateinit var wireMockServer: WireMockServer
+    private lateinit var rawIpData: AwsIpData
     private lateinit var testResponse: String
     private lateinit var jsonNode: JsonNode
     private var listOfAllIps: MutableList<String> = mutableListOf()
@@ -61,7 +62,7 @@ internal class ClientTest(
     }
 
     @ParameterizedTest
-    @MethodSource("ranges")
+    @MethodSource("httpResponseCodeRanges")
     fun `should return valid status response`(input: Int, expected: String) {
 
         wireMockServer.stubFor(
@@ -98,14 +99,7 @@ internal class ClientTest(
 
     @Test
     fun `should get correct Data from API`() {
-        wireMockServer.stubFor(
-            get("/response")
-                .willReturn(
-                    aResponse()
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(jsonString)
-                )
-        )
+        createWireMockServer()
 
         val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
         val jsonNodeList = client.createJacksonMapper(response)
@@ -172,23 +166,7 @@ internal class ClientTest(
 
     @Test
     fun `should create data with ips`() {
-        wireMockServer.stubFor(
-            get("/response")
-                .willReturn(
-                    aResponse()
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(jsonString)
-                )
-        )
-
-        val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
-        val jsonNodeList = client.createJacksonMapper(response)
-        val rawIpData = AwsIpData(
-            createDate = jsonNodeList.findValue("createDate").textValue(),
-            ipv6Prefixes = client.getIpv6Prefixes(jsonNodeList),
-            prefixes = client.getIpPrefixes(jsonNodeList),
-            syncToken = jsonNodeList.findValue("syncToken").textValue(),
-        )
+        createWireMockServerAndRawIpData()
 
         var allData = client.createAwsIpData("ALL", rawIpData)
         assertEquals(1, allData.ipv6Prefixes.size)
@@ -203,23 +181,8 @@ internal class ClientTest(
 
     @Test
     fun `should get correct ipv6 with filter`() {
-        wireMockServer.stubFor(
-            get("/response")
-                .willReturn(
-                    aResponse()
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(jsonString)
-                )
-        )
+        createWireMockServerAndRawIpData()
 
-        val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
-        val jsonNodeList = client.createJacksonMapper(response)
-        val rawIpData = AwsIpData(
-            createDate = jsonNodeList.findValue("createDate").textValue(),
-            ipv6Prefixes = client.getIpv6Prefixes(jsonNodeList),
-            prefixes = client.getIpPrefixes(jsonNodeList),
-            syncToken = jsonNodeList.findValue("syncToken").textValue(),
-        )
         assertEquals(
             "[Ipv6Prefixe(ipv6Prefix=2a05:d07a:a000::/40, networkBorderGroup=eu-south-1, region=eu-south-1, service=AMAZON)]",
             client.getIpv6RegionByFilter(rawIpData, "eu").toString()
@@ -229,23 +192,8 @@ internal class ClientTest(
 
     @Test
     fun `should get correct ip with filter`() {
-        wireMockServer.stubFor(
-            get("/response")
-                .willReturn(
-                    aResponse()
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(jsonString)
-                )
-        )
+        createWireMockServerAndRawIpData()
 
-        val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
-        val jsonNodeList = client.createJacksonMapper(response)
-        val rawIpData = AwsIpData(
-            createDate = jsonNodeList.findValue("createDate").textValue(),
-            ipv6Prefixes = client.getIpv6Prefixes(jsonNodeList),
-            prefixes = client.getIpPrefixes(jsonNodeList),
-            syncToken = jsonNodeList.findValue("syncToken").textValue(),
-        )
         assertEquals(
             "[Prefixe(ipPrefix=13.34.37.64/27, networkBorderGroup=ap-southeast-4, region=ap-southeast-4, service=AMAZON)]",
             client.getIpRegionByFilter(rawIpData, "ap").toString()
@@ -255,23 +203,7 @@ internal class ClientTest(
 
     @Test
     fun `should get all possible ip data`() {
-        wireMockServer.stubFor(
-            get("/response")
-                .willReturn(
-                    aResponse()
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(jsonString)
-                )
-        )
-
-        val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
-        val jsonNodeList = client.createJacksonMapper(response)
-        val rawIpData = AwsIpData(
-            createDate = jsonNodeList.findValue("createDate").textValue(),
-            ipv6Prefixes = client.getIpv6Prefixes(jsonNodeList),
-            prefixes = client.getIpPrefixes(jsonNodeList),
-            syncToken = jsonNodeList.findValue("syncToken").textValue(),
-        )
+        createWireMockServerAndRawIpData()
 
         val mockClient: Client = mock(Client::class.java)
         mockClient.getPossibleIps(rawIpData)
@@ -280,23 +212,7 @@ internal class ClientTest(
 
     @Test
     fun `should get all possible ipv6 data`() {
-        wireMockServer.stubFor(
-            get("/response")
-                .willReturn(
-                    aResponse()
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(jsonString)
-                )
-        )
-
-        val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
-        val jsonNodeList = client.createJacksonMapper(response)
-        val rawIpData = AwsIpData(
-            createDate = jsonNodeList.findValue("createDate").textValue(),
-            ipv6Prefixes = client.getIpv6Prefixes(jsonNodeList),
-            prefixes = client.getIpPrefixes(jsonNodeList),
-            syncToken = jsonNodeList.findValue("syncToken").textValue(),
-        )
+        createWireMockServerAndRawIpData()
 
         val mockClient: Client = mock(Client::class.java)
         mockClient.getPossibleIpv6Ips(rawIpData)
@@ -305,6 +221,16 @@ internal class ClientTest(
 
     @Test
     fun `should get all possible ip and ipv6 data in a list`() {
+        createWireMockServerAndRawIpData()
+
+        listOfAllIps = client.getAllIps(rawIpData)
+
+        assertEquals(2, listOfAllIps.size)
+        assertEquals("2a05:d07a:a000::/40", listOfAllIps[0])
+        assertEquals("13.34.37.64/27", listOfAllIps[1])
+    }
+
+    fun createWireMockServer(){
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -313,20 +239,21 @@ internal class ClientTest(
                         .withBody(jsonString)
                 )
         )
+    }
 
+    fun createRawIpData(){
         val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
         val jsonNodeList = client.createJacksonMapper(response)
-        val rawIpData = AwsIpData(
+        rawIpData = AwsIpData(
             createDate = jsonNodeList.findValue("createDate").textValue(),
             ipv6Prefixes = client.getIpv6Prefixes(jsonNodeList),
             prefixes = client.getIpPrefixes(jsonNodeList),
             syncToken = jsonNodeList.findValue("syncToken").textValue(),
         )
+    }
 
-        listOfAllIps = client.getAllIps(rawIpData)
-
-        assertEquals(2, listOfAllIps.size)
-        assertEquals("2a05:d07a:a000::/40", listOfAllIps[0])
-        assertEquals("13.34.37.64/27", listOfAllIps[1])
+    fun createWireMockServerAndRawIpData(){
+        createWireMockServer()
+        createRawIpData()
     }
 }
