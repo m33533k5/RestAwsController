@@ -24,8 +24,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0-RC")
-    implementation("io.projectreactor:reactor-test")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.junit.jupiter:junit-jupiter-params")
 
