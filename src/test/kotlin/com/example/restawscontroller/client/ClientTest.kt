@@ -26,8 +26,7 @@ import kotlin.test.assertEquals
 internal class ClientTest(
     @Autowired val client: Client
 ) {
-    @Autowired
-    private lateinit var wireMockServer: WireMockServer
+    @Autowired private lateinit var wireMockServer: WireMockServer
     private lateinit var rawIpData: AwsIpData
     private lateinit var testResponse: String
     private lateinit var jsonNode: JsonNode
@@ -230,7 +229,7 @@ internal class ClientTest(
         assertEquals("13.34.37.64/27", listOfAllIps[1])
     }
 
-    fun createWireMockServer(){
+    private fun createWireMockServer(){
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -241,7 +240,7 @@ internal class ClientTest(
         )
     }
 
-    fun createRawIpData(){
+    private fun createRawIpData(){
         val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
         val jsonNodeList = client.createJacksonMapper(response)
         rawIpData = AwsIpData(
@@ -252,7 +251,7 @@ internal class ClientTest(
         )
     }
 
-    fun createWireMockServerAndRawIpData(){
+    private fun createWireMockServerAndRawIpData(){
         createWireMockServer()
         createRawIpData()
     }
