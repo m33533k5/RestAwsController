@@ -219,12 +219,11 @@ internal class ClientTest(
     }
 
     @Test
-    fun `should get all possible ip and ipv6 data in a list`() {
+    fun `should get possible ip and ipv6 data in a list`() {
         createWireMockServerAndRawIpData()
 
         listOfAllIps = client.getAllIps(rawIpDataClient)
 
-        assertEquals(2, listOfAllIps.size)
         assertEquals("2a05:d07a:a000::/40", listOfAllIps[0])
         assertEquals("13.34.37.64/27", listOfAllIps[1])
     }
