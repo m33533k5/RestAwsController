@@ -62,7 +62,7 @@ internal class ClientTest(
 
     @ParameterizedTest
     @MethodSource("ranges")
-    fun shouldReturnValidStatusResponse(input: Int, expected: String) {
+    fun `should return valid status response`(input: Int, expected: String) {
 
         wireMockServer.stubFor(
             get("/response")
@@ -85,7 +85,7 @@ internal class ClientTest(
     companion object {
 
         @JvmStatic
-        fun ranges() = listOf(
+        fun httpResponseCodeRanges() = listOf(
             200..299 to "Seite erreichbar",
             300..399 to "Weiterleitung",
             400..499 to "Seite erreichbar (Client error - Code: %s)",
@@ -97,7 +97,7 @@ internal class ClientTest(
     }
 
     @Test
-    fun getDataFromAPI() {
+    fun `should get correct Data from API`() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -123,13 +123,13 @@ internal class ClientTest(
     }
 
     @Test
-    fun errorMessage() {
+    fun `should get correct error message`() {
         val expect = "(Server error - Code: 123)"
         assertEquals(expect, client.errorMessage(123, "Server"))
     }
 
     @Test
-    fun getResponseFromApi() {
+    fun `should get correct response`() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -144,14 +144,14 @@ internal class ClientTest(
     }
 
     @Test
-    fun createJacksonMapper() {
+    fun `should create a Json Node`() {
         jsonNode = client.createJacksonMapper(jsonString)
         assertEquals("1659489187", jsonNode.findValue("syncToken").textValue())
         assertEquals("2022-08-03-01-13-07", jsonNode.findValue("createDate").textValue())
     }
 
     @Test
-    fun getIpv6Prefixes() {
+    fun `should get correct ipv6 list`() {
         jsonNode = client.createJacksonMapper(jsonString)
         val ipv6List: List<Ipv6Prefixe> = client.getIpv6Prefixes(jsonNode)
         assertEquals("2a05:d07a:a000::/40", ipv6List[0].ipv6Prefix.toString())
@@ -161,7 +161,7 @@ internal class ClientTest(
     }
 
     @Test
-    fun getIpPrefixes() {
+    fun `should get correct ip list`() {
         jsonNode = client.createJacksonMapper(jsonString)
         val ipv6List: List<Prefixe> = client.getIpPrefixes(jsonNode)
         assertEquals("13.34.37.64/27", ipv6List[0].ipPrefix.toString())
@@ -171,7 +171,7 @@ internal class ClientTest(
     }
 
     @Test
-    fun createAwsIpData() {
+    fun `should create data with ips`() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -202,7 +202,7 @@ internal class ClientTest(
     }
 
     @Test
-    fun getIpv6RegionByFilter() {
+    fun `should get correct ipv6 with filter`() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -228,7 +228,7 @@ internal class ClientTest(
     }
 
     @Test
-    fun getIpRegionByFilter() {
+    fun `should get correct ip with filter`() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -254,7 +254,7 @@ internal class ClientTest(
     }
 
     @Test
-    fun getPossibleIps() {
+    fun `should get all possible ip data`() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -279,7 +279,7 @@ internal class ClientTest(
     }
 
     @Test
-    fun getPossibleIpv6Ips() {
+    fun `should get all possible ipv6 data`() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -304,7 +304,7 @@ internal class ClientTest(
     }
 
     @Test
-    fun getAllIps() {
+    fun `should get all possible ip and ipv6 data in a list`() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
