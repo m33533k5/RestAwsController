@@ -23,11 +23,11 @@ class Controller(
 
     }
 
-    fun responseDataIsNotEmpty(data: AwsIpData?): Boolean {
+    private fun responseDataIsNotEmpty(data: AwsIpData?): Boolean {
         return !(data?.prefixes?.isEmpty() == true && data.ipv6Prefixes.isEmpty())
     }
 
-    fun outputData(response: AwsIpData){
+    private fun outputData(response: AwsIpData){
         return when (responseDataIsNotEmpty(response)) {
             false -> {
                 println("Keine Ergebnisse gefunden.")
