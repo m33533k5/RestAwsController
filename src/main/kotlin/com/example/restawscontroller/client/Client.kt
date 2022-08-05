@@ -58,10 +58,9 @@ class Client(
         return httpStatus.block(Duration.ofMillis(10000))
     }
 
+    private fun errorMessage(responseCode: Int, responsible: String?) = "(${responsible} error - Code: ${responseCode})"
 
-    fun errorMessage(responseCode: Int, responsible: String?) = "(${responsible} error - Code: ${responseCode})"
-
-    fun getResponseFromApi(url: String): String {
+    private fun getResponseFromApi(url: String): String {
         return URL(url).readText()
     }
 
@@ -107,13 +106,13 @@ class Client(
         }
     }
 
-    fun getIpv6RegionByFilter(rawIpData: AwsIpData, region: String): List<Ipv6Prefixe> {
+    private fun getIpv6RegionByFilter(rawIpData: AwsIpData, region: String): List<Ipv6Prefixe> {
         return rawIpData.ipv6Prefixes.filter {
             it.region?.substringBefore("-")?.equals(region, ignoreCase = true) ?: false
         }
     }
 
-    fun getIpRegionByFilter(rawIpData: AwsIpData, region: String): List<Prefixe> {
+    private fun getIpRegionByFilter(rawIpData: AwsIpData, region: String): List<Prefixe> {
         return rawIpData.prefixes.filter {
             it.region?.substringBefore("-")?.equals(region, ignoreCase = true) ?: false
         }
