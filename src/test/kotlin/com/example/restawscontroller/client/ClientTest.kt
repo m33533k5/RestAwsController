@@ -26,7 +26,8 @@ import kotlin.test.assertEquals
 internal class ClientTest(
     @Autowired val client: Client
 ) {
-    @Autowired private lateinit var wireMockServer: WireMockServer
+    @Autowired
+    private lateinit var wireMockServer: WireMockServer
     private lateinit var rawIpDataClient: AwsIpData
     private lateinit var testResponse: String
     private lateinit var jsonNode: JsonNode
@@ -63,7 +64,6 @@ internal class ClientTest(
     @ParameterizedTest
     @MethodSource("httpResponseCodeRanges")
     fun `should return valid status response`(input: Int, expected: String) {
-
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -100,7 +100,7 @@ internal class ClientTest(
     fun `should get correct Data from API`() {
         createWireMockServer()
 
-        val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
+        val response = getAccessToPrivateMethod("getResponseFromApi", "${wireMockServer.baseUrl()}/response")
         val jsonNodeList = client.createJacksonMapper(response)
 
         assertEquals("2022-08-03-01-13-07", jsonNodeList.findValue("createDate").textValue())
@@ -117,8 +117,13 @@ internal class ClientTest(
 
     @Test
     fun `should get correct error message`() {
+        val method = client.javaClass.getDeclaredMethod("errorMessage", Int::class.java, String::class.java)
+        method.isAccessible = true
+        val parameters = arrayOfNulls<Any>(2)
+        parameters[0] = 123
+        parameters[1] = "Server"
         val expect = "(Server error - Code: 123)"
-        assertEquals(expect, client.errorMessage(123, "Server"))
+        assertEquals(expect, method.invoke(client, *parameters))
     }
 
     @Test
@@ -132,7 +137,7 @@ internal class ClientTest(
                 )
         )
 
-        testResponse = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
+        testResponse = getAccessToPrivateMethod("getResponseFromApi", "${wireMockServer.baseUrl()}/response")
         assertEquals("Test", testResponse)
     }
 
@@ -184,9 +189,10 @@ internal class ClientTest(
 
         assertEquals(
             "[Ipv6Prefixe(ipv6Prefix=2a05:d07a:a000::/40, networkBorderGroup=eu-south-1, region=eu-south-1, service=AMAZON)]",
-            client.getIpv6RegionByFilter(rawIpDataClient, "eu").toString()
+            getAccessToPrivateMethod("getIpv6RegionByFilter", rawIpDataClient, "eu")
         )
-        assertEquals("[]", client.getIpv6RegionByFilter(rawIpDataClient, "qw").toString())
+
+        assertEquals("[]", getAccessToPrivateMethod("getIpv6RegionByFilter", rawIpDataClient, "qw"))
     }
 
     @Test
@@ -195,9 +201,9 @@ internal class ClientTest(
 
         assertEquals(
             "[Prefixe(ipPrefix=13.34.37.64/27, networkBorderGroup=ap-southeast-4, region=ap-southeast-4, service=AMAZON)]",
-            client.getIpRegionByFilter(rawIpDataClient, "ap").toString()
+            getAccessToPrivateMethod("getIpRegionByFilter", rawIpDataClient, "ap")
         )
-        assertEquals("[]", client.getIpRegionByFilter(rawIpDataClient, "qw").toString())
+        assertEquals("[]", getAccessToPrivateMethod("getIpRegionByFilter", rawIpDataClient, "qw"))
     }
 
     @Test
@@ -228,7 +234,7 @@ internal class ClientTest(
         assertEquals("13.34.37.64/27", listOfAllIps[1])
     }
 
-    private fun createWireMockServer(){
+    private fun createWireMockServer() {
         wireMockServer.stubFor(
             get("/response")
                 .willReturn(
@@ -239,8 +245,29 @@ internal class ClientTest(
         )
     }
 
-    private fun createRawIpData(){
-        val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
+    private fun getAccessToPrivateMethod(methodName: String, parameterString: String): String {
+        val method = client.javaClass.getDeclaredMethod(methodName, String::class.java)
+        method.isAccessible = true
+        val parameters = arrayOfNulls<Any>(1)
+        parameters[0] = parameterString
+        return method.invoke(client, *parameters).toString()
+    }
+
+    private fun getAccessToPrivateMethod(
+        methodName: String,
+        parameterAwsIpData: AwsIpData,
+        parameterString: String
+    ): String {
+        val method = client.javaClass.getDeclaredMethod(methodName, AwsIpData::class.java, String::class.java)
+        method.isAccessible = true
+        val parameters = arrayOfNulls<Any>(2)
+        parameters[0] = parameterAwsIpData
+        parameters[1] = parameterString
+        return method.invoke(client, *parameters).toString()
+    }
+
+    private fun createRawIpData() {
+        val response = getAccessToPrivateMethod("getResponseFromApi", "${wireMockServer.baseUrl()}/response")
         val jsonNodeList = client.createJacksonMapper(response)
         rawIpDataClient = AwsIpData(
             createDate = jsonNodeList.findValue("createDate").textValue(),
@@ -250,7 +277,7 @@ internal class ClientTest(
         )
     }
 
-    private fun createWireMockServerAndRawIpData(){
+    private fun createWireMockServerAndRawIpData() {
         createWireMockServer()
         createRawIpData()
     }
