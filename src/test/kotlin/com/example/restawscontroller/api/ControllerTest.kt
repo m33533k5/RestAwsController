@@ -153,7 +153,11 @@ internal class ControllerTest(
     }
 
     private fun createRawIpData(){
-        val response = client.getResponseFromApi("${wireMockServer.baseUrl()}/response")
+        val method = client.javaClass.getDeclaredMethod("getResponseFromApi", AwsIpData::class.java)
+        method.isAccessible = true
+        val parameters = arrayOfNulls<Any>(1)
+        parameters[0] = "${wireMockServer.baseUrl()}/response"
+        val response = method.invoke(client, *parameters).toString()
         val jsonNodeList = client.createJacksonMapper(response)
         rawIpDataController = AwsIpData(
             createDate = jsonNodeList.findValue("createDate").textValue(),
