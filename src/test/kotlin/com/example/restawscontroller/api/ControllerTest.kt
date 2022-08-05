@@ -100,45 +100,29 @@ internal class ControllerTest(
 
     @Test
     fun `should find nothing`() {
-        val method = controller.javaClass.getDeclaredMethod("responseDataIsNotEmpty", AwsIpData::class.java)
-        method.isAccessible = true
-        val parameters = arrayOfNulls<Any>(1)
         createWireMockServerAndRawIpData(jsonStringEmpty)
-        parameters[0] = rawIpDataController
-        assertEquals(false, method.invoke(controller, *parameters))
+        assertEquals(false, getAccessToPrivateControllerMethod("responseDataIsNotEmpty",rawIpDataController))
     }
 
     @Test
     fun `should response with data`(){
-        val method = controller.javaClass.getDeclaredMethod("responseDataIsNotEmpty", AwsIpData::class.java)
-        method.isAccessible = true
-        val parameters = arrayOfNulls<Any>(1)
         createWireMockServerAndRawIpData(jsonStringAllIps)
-        parameters[0] = rawIpDataController
-        assertEquals(true, method.invoke(controller, *parameters))
+        assertEquals(true, getAccessToPrivateControllerMethod("responseDataIsNotEmpty",rawIpDataController))
     }
 
     @Test
     fun responseDataIsEmpty() {
-        val method = controller.javaClass.getDeclaredMethod("responseDataIsNotEmpty", AwsIpData::class.java)
-        method.isAccessible = true
-        val parameters = arrayOfNulls<Any>(1)
         createWireMockServerAndRawIpData(jsonStringIpv6Empty)
-        parameters[0] = rawIpDataController
-        assertEquals(true, method.invoke(controller, *parameters))
-
+        assertEquals(true, getAccessToPrivateControllerMethod("responseDataIsNotEmpty",rawIpDataController))
 
         createWireMockServerAndRawIpData(jsonStringIpEmpty)
-        parameters[0] = rawIpDataController
-        assertEquals(true, method.invoke(controller, *parameters))
+        assertEquals(true, getAccessToPrivateControllerMethod("responseDataIsNotEmpty",rawIpDataController))
 
         createWireMockServerAndRawIpData(jsonStringAllIps)
-        parameters[0] = rawIpDataController
-        assertEquals(true, method.invoke(controller, *parameters))
+        assertEquals(true, getAccessToPrivateControllerMethod("responseDataIsNotEmpty",rawIpDataController))
 
         createWireMockServerAndRawIpData(jsonStringEmpty)
-        parameters[0] = rawIpDataController
-        assertEquals(false, method.invoke(controller, *parameters))
+        assertEquals(false, getAccessToPrivateControllerMethod("responseDataIsNotEmpty",rawIpDataController))
     }
 
     private fun createWireMockServer(jsonString: String){
@@ -153,11 +137,7 @@ internal class ControllerTest(
     }
 
     private fun createRawIpData(){
-        val method = client.javaClass.getDeclaredMethod("getResponseFromApi", AwsIpData::class.java)
-        method.isAccessible = true
-        val parameters = arrayOfNulls<Any>(1)
-        parameters[0] = "${wireMockServer.baseUrl()}/response"
-        val response = method.invoke(client, *parameters).toString()
+        val response = getAccessToPrivateClientMethod("getResponseFromApi", "${wireMockServer.baseUrl()}/response")
         val jsonNodeList = client.createJacksonMapper(response)
         rawIpDataController = AwsIpData(
             createDate = jsonNodeList.findValue("createDate").textValue(),
@@ -170,5 +150,21 @@ internal class ControllerTest(
     private fun createWireMockServerAndRawIpData(jsonString: String){
         createWireMockServer(jsonString)
         createRawIpData()
+    }
+
+    private fun getAccessToPrivateClientMethod(methodName: String, parameterString: String): String {
+        val method = client.javaClass.getDeclaredMethod(methodName, String::class.java)
+        method.isAccessible = true
+        val parameters = arrayOfNulls<Any>(1)
+        parameters[0] = parameterString
+        return method.invoke(client, *parameters).toString()
+    }
+
+    private fun getAccessToPrivateControllerMethod(methodName: String, parameterAwsIpData: AwsIpData): Boolean {
+        val method = controller.javaClass.getDeclaredMethod(methodName, AwsIpData::class.java)
+        method.isAccessible = true
+        val parameters = arrayOfNulls<Any>(1)
+        parameters[0] = parameterAwsIpData
+        return method.invoke(controller, *parameters) as Boolean
     }
 }
