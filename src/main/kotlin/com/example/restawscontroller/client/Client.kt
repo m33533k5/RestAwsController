@@ -39,27 +39,6 @@ class Client(
         )
     }
 
-    fun getHttpStatusCode(url: String): Mono<String> = webClient
-        .get()
-        .uri(url)
-        .exchangeToMono { it.rawStatusCode().toMono() }
-        .map { checkHttpStatusCode(it) }
-
-    fun checkHttpStatusCode(responseCode: Int): String = when (responseCode) {
-        in 200..299 -> "Seite erreichbar"
-        in 400..499 -> "Seite erreichbar ${errorMessage(responseCode, "Client")}"
-        in 500..599 -> "Seite nicht erreichbar ${errorMessage(responseCode, "Server")}"
-        in 300..399 -> "Weiterleitung"
-        else -> "Nicht definierter Status"
-    }
-
-    fun getHttpStatusCodeAsString(): String?{
-        val httpStatus: Mono<String> = getHttpStatusCode(url)
-        return httpStatus.block(Duration.ofMillis(10000))
-    }
-
-    private fun errorMessage(responseCode: Int, responsible: String?) = "(${responsible} error - Code: ${responseCode})"
-
     private fun getResponseFromApi(url: String): String {
         return URL(url).readText()
     }
@@ -118,6 +97,33 @@ class Client(
         }
     }
 
+    fun getHttpStatusCode(url: String): Mono<String> = webClient
+        .get()
+        .uri(url)
+        .exchangeToMono { it.rawStatusCode().toMono() }
+        .map { checkHttpStatusCode(it) }
+
+    fun checkHttpStatusCode(responseCode: Int): String = when (responseCode) {
+        in 200..299 -> "Seite erreichbar"
+        in 400..499 -> "Seite erreichbar ${errorMessage(responseCode, "Client")}"
+        in 500..599 -> "Seite nicht erreichbar ${errorMessage(responseCode, "Server")}"
+        in 300..399 -> "Weiterleitung"
+        else -> "Nicht definierter Status"
+    }
+
+    fun getHttpStatusCodeAsString(): String? {
+        val httpStatus: Mono<String> = getHttpStatusCode(url)
+        return httpStatus.block(Duration.ofMillis(10000))
+    }
+
+    private fun errorMessage(responseCode: Int, responsible: String?) = "(${responsible} error - Code: ${responseCode})"
+
+    fun getAllIps(rawIpData: AwsIpData): MutableList<String> {
+        getPossibleIps(rawIpData)
+        getPossibleIpv6Ips(rawIpData)
+        return listOfAllIps
+    }
+
     fun getPossibleIps(rawIpData: AwsIpData) {
         for (item in 0 until rawIpData.prefixes.size) {
             listOfAllIps.add(item, rawIpData.prefixes[item].ipPrefix.toString())
@@ -128,11 +134,5 @@ class Client(
         for (item in 0 until rawIpData.ipv6Prefixes.size) {
             listOfAllIps.add(item, rawIpData.ipv6Prefixes[item].ipv6Prefix.toString())
         }
-    }
-
-    fun getAllIps(rawIpData: AwsIpData): MutableList<String> {
-        getPossibleIps(rawIpData)
-        getPossibleIpv6Ips(rawIpData)
-        return listOfAllIps
     }
 }

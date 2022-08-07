@@ -16,18 +16,13 @@ class Controller(
     fun getUrlContent(@RequestParam region: String) {
         val response: AwsIpData = client.main(region = region)
 
-        return when(client.getHttpStatusCodeAsString()){
+        return when (client.getHttpStatusCodeAsString()) {
             "Seite erreichbar" -> outputData(response)
             else -> println(client.getHttpStatusCodeAsString())
         }
-
     }
 
-    private fun responseDataIsNotEmpty(data: AwsIpData?): Boolean {
-        return !(data?.prefixes?.isEmpty() == true && data.ipv6Prefixes.isEmpty())
-    }
-
-    private fun outputData(response: AwsIpData){
+    private fun outputData(response: AwsIpData) {
         return when (responseDataIsNotEmpty(response)) {
             false -> {
                 println("Keine Ergebnisse gefunden.")
@@ -36,5 +31,9 @@ class Controller(
                 println(client.getAllIps(response).joinToString(separator = "\n"))
             }
         }
+    }
+
+    private fun responseDataIsNotEmpty(data: AwsIpData?): Boolean {
+        return !(data?.prefixes?.isEmpty() == true && data.ipv6Prefixes.isEmpty())
     }
 }
